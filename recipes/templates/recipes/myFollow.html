@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load recipe_filters %}
+{% load static thumbnail %}
+{% block title %}Мои подписки{% endblock %}
+{% block static %}<link rel="stylesheet" href="{% static 'pages/myFollow.css' %}"> {% endblock %}
+{% block content %}
+<main class="main container">
+    <div class="main__header">
+        <h1 class="main__title">Мои подписки</h1>
+    </div>
+    <div class="card-list">
+        {% for user in page %}
+        <div class="card-user" data-author="{{ user.author.id }}">
+            <div class="card-user__header">
+                <a href="{% url 'author' user.author.username %}"> <h2 class="card-user__title" >{{ user.author.get_full_name}}</h2></a>
+            </div>
+            <div class="card-user__body">
+                <ul class="card-user__items">
+                    {% with recipes=user.author.recipes.all %}
+                    {% for recipe in recipes|slice:':3' %}
+                    <li class="card-user__item">
+                        <div class="recipe">
+                            {% thumbnail recipe.image "300x300" crop="center" upscale=True as im %}
+                                <img class="recipe__image" src="{{ im.url }}" alt="Какой-то текст" />
+                            {% endthumbnail %}
+                            <h3 class="recipe__title">{{ recipe }}</h3>
+                            <p class="recipe__text"><span class="icon-time"></span> {{ recipe.cook_time }} мин.</p>
+                        </div>
+                    </li>
+                    {% if forloop.last or forloop.counter == 3 %}
+                    <li class="card-user__item">
+                        <a href="{% url 'follow' %}" class="card-user__link link">{{ forloop.revcounter0|count_recipes }}...</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    {% endwith %}
+                </ul>
+            </div>
+            <div class="card-user__footer">
+                <button class="button button_style_light-blue button_size_auto" name="subscribe">Отписаться</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if page.has_other_pages %}
+            {% include 'paginator.html' with items=page paginator=paginator%}
+        {% endif %}
+</main>
+
+<script src="{% static 'js/config/config.js' %}"></script>
+<script src="{% static 'js/components/MainCards.js' %}"></script>
+<script src="{% static 'js/components/MyFollow.js' %}"></script>
+<script src="{% static 'js/components/Subscribe.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'myFollow.js' %}"></script>
+{% endblock %}

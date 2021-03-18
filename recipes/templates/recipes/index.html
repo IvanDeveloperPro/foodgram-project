@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load recipe_filters %}
+{% load static %}
+{% load thumbnail %}
+{% block title %}Рецепты{% endblock %}
+{% block static %}<link rel="stylesheet" href="{% static 'pages/index.css' %}"> {% endblock %}
+{% block content %}
+    <main class="main container">
+        <div class="main__header">
+            {% with resolver=request.resolver_match.url_name %}
+            {% if resolver  == 'favorite' %}
+                <h1 class="main__title">Избранное</h1>
+            {% elif resolver == 'author' %}
+                <h1 class="main__title">{{ author.get_full_name }}</h1>
+            {% else %}
+                <h1 class="main__title">Рецепты</h1>
+            {% endif %}
+            <ul class="tags">
+                {% for tag in tags %}
+                <li class="tags__item">
+                    {% if tag|active_tag == 'deactive' %}
+                        <a id="{{ tag.id }}" class="tags__checkbox tags__checkbox_style_{{ tag.color }}"
+                           href="{% if resolver == 'favorite' %}{% url 'favorite' %}{% elif resolver == 'author' %}{% url 'author' author.username %}{% else %}{% url 'index' %}{% endif %}?page={{ page.number }}&{{ tag }}=active"></a>
+                    {% else %}
+                        <a id="{{ tag.id }}" class="tags__checkbox tags__checkbox_style_{{ tag.color }} tags__checkbox_active"
+                            href="{% if resolver == 'favorite' %}{% url 'favorite' %}{% elif resolver == 'author' %}{% url 'author' author.username %}{% else %}{% url 'index' %}{% endif %}?page={{ page.number }}&{{ tag }}=deactive"></a>
+                    {% endif %}
+                    <span class="tags__label">{{ tag }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {% if resolver == 'author' and user.is_authenticated and user != author %}
+            <div class="author-subscribe" data-author="{{ author.id }}">
+            {% if author|author_follow:request %}
+                <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe button_style_blue" name="subscribe">Отписатся от автора</button></p>
+            {% else %}
+                <p style="padding: 0 0 2em 0;"><button class="button button_style_light-blue button_size_subscribe" name="subscribe" data-out>Подписаться на автора</button></p>
+            {% endif %}
+        {% endif %}
+        </div>
+
+        <div class="card-list">
+
+        {% for recipe in page %}
+            <div class="card" data-id="{{ recipe.id }}">
+
+                {% thumbnail recipe.image "300x300" crop="center" upscale=True as im %}
+                    <img class="card__image" src="{{ im.url }}" alt="Какой-то текст" />
+                {% endthumbnail %}
+                <div class="card__body">
+                    <a class="card__title link" href="{% url 'single_recipe' recipe.id %}">{{ recipe }}</a>
+                    <ul class="card__items">
+                        {% for tag in recipe.tagfood.all %}
+                        <li class="card__item"><span class="badge badge_style_{{ tag.color }}">{{ tag }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    <div class="card__items card__items_column">
+                        <p class="card__text"><span class="icon-time"></span> {{ recipe.cook_time }} мин.</p>
+                        <p class="card__text"><span class="icon-user"></span> <a href="{% url 'author' recipe.author.username %}" style="color: #000000">{{ recipe.author.get_full_name}}</a></p>
+                    </div>
+                </div>
+                <div class="card__footer">
+                    {% if recipe|user_purchase:request %}
+                        <button class="button button_style_light-blue-outline" name="purchases"><span class="icon-check button__icon"></span> Рецепт добавлен</button>
+                    {% else %}
+                        <button class="button button_style_light-blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        {% if recipe|user_favorite:request %}
+                            <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_active"></span></button>
+                        {% else %}
+                            <button class="button button_style_none" name="favorites" data-out><span class="icon-favorite"></span></button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+
+        {% if page.has_other_pages %}
+            {% include 'paginator.html' with items=page paginator=paginator %}
+        {% endif %}
+    </main>
+
+  <script src="{% static 'js/components/MainCards.js' %}"></script>
+
+  <script src="{% static 'js/components/Purchases.js' %}"></script>
+  <script src="{% static 'js/components/Favorites.js' %}"></script>
+    <script src="{% static 'js/components/Subscribe.js' %}"></script>
+{% if resolver != 'author' %}
+    <script src="{% static 'js/components/CardList.js' %}"></script>
+{% endif %}
+    <script src="{% static 'js/config/config.js' %}"></script>
+{% if resolver != 'favorite' %}
+  <script src="{% static 'js/components/AuthorRecipe.js' %}"></script>
+{% endif %}
+    <script src="{% static 'js/components/Header.js' %}"></script>
+
+
+  <script src="{% static 'js/api/Api.js' %}"></script>
+{% if resolver != 'author' %}
+{% if resolver != 'favorite' %}
+    <script src="{% static 'indexAuth.js' %}"></script>
+{% endif %}
+{% endif %}
+{% if resolver != 'index' %}
+    {% if resolver != 'author' %}
+    <script src="{% static 'favorite.js' %}"></script>
+    {% endif %}
+{% endif %}
+{% if resolver == 'author' %}
+    <script src="{% static 'authorRecipe.js' %}"></script>
+{% endif %}
+{% endwith %}
+{% endblock %}

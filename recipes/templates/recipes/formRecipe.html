@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load recipe_filters %}
+{% load static %}
+{% block title %}{% if form.instance.id %}Редактирование{% else %}Создание{% endif %} рецепта{% endblock %}
+{% block static %}<link rel="stylesheet" href="{% static 'pages/form.css' %}"> {% endblock %}
+{% block content %}
+
+<main class="main container">
+    <div class="main__header">
+        <h1 class="main__title">{% if form.instance.id %}Редактирование{% else %}Создание{% endif %} рецепта</h1>
+    </div>
+
+    <div class="form-container">
+        <form class="form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form__group">
+                <label for="{{ form.title.id_for_label }}" class="form__label">{{ form.title.label}}</label>
+                <div class="form__field-group">
+                    <input type="text" id="{{ form.title.id_for_label }}"  class="form__input" name="{{ form.title.name }}" value="{{ form.title.value|default_if_none:'' }}">
+                    {% if form.title.errors %}
+                        <span class="form__error">{{ form.title.errors }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            <div class="form__group">
+                <p class="form__label">Теги</p>
+                <div class="form__field-group">
+                    <div class="tags">
+                        {% for tag in form.tagfood %}
+                        <div class="tags__item">
+                            <label for="{{ tag.id_for_label }}" class="tags__label">{{ tag|tag_filter }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.tagfood.errors %}
+                        <span class="form__error">{{ form.tagfood.errors }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            <div class="form__group">
+                <label for="nameIngredient" class="form__label">Ингредиенты</label>
+                <div class="form__field-group">
+                    <div class="form__field-group-ingredientes">
+                        <div class="form__dropdown">
+                            <input type="text" id="nameIngredient" class="form__input">
+                            <div class="form__dropdown-items"></div>
+                        </div>
+                        <input type="number" id="cantidad" class="form__input" min="0">
+                        <label for="cantidad" class="form__label" id="cantidadVal">шт.</label>
+                    </div>
+                    <div class="form__field-group-ingredientes-container">
+                        {% if form.instance.author == request.user %}
+                            {% for ingredient in form.instance.ingredient.all %}
+                            <div class="form__field-item-ingredient" id="ing_{{ ingredient.id }}">
+                                <span> {{ ingredient }} {{ ingredient.amount }} {{ ingredient.ingredient.dimension }}</span>
+                                <span class="form__field-item-delete"></span>
+                                <input id="nameIngredient_{{ ingredient.id }}" name="nameIngredient_{{ ingredient.id }}" type="hidden" value="{{ ingredient.ingredient.title }}">
+                                <input id="valueIngredient_{{ ingredient.id }}" name="valueIngredient_{{ ingredient.id }}" type="hidden" value="{{ ingredient.amount }}">
+                                <input id="unitsIngredient_{{ ingredient.id }}" name="unitsIngredient_{{ ingredient.id }}" type="hidden" value="{{ ingredient.ingredient.dimension }}">
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>
+                    {% if ingredient.errors %}
+                        <span class="form__error">{{ ingredient.errors }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            <div class="form__group">
+                <label for="{{ form.cook_time.id_for_label }}" class="form__label">{{ form.cook_time.label}}</label>
+                <div class="form__field-group form__field-group_time">
+                    <input type="text" id="{{ form.cook_time.id_for_label }}" value="{{ form.cook_time.value|default_if_none:'' }}" name="{{ form.cook_time.name }}" class="form__input">
+                    <label for="{{ form.cook_time.id_for_label }}" class="form__label">минут</label>
+                    {% if form.cook_time.errors %}
+                        <span class="form__error">{{ form.cook_time.errors }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            <div class="form__group">
+                <label for="{{ form.description.id_for_label }}" class="form__label">{{ form.description.label }}</label>
+                <div class="form__field-group">
+                    <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="8" class="form__textarea">{{ form.description.value|default_if_none:'' }}</textarea>
+                    {% if form.description.errors %}
+                        <span class="form__error">{{ form.description.errors }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            <div class="form__group">
+                <span class="form__label">{{ form.image.label }}</span>
+                <div class="form__field-group">
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                        <span class="form__error">{{ form.image.errors }}</span>
+                    {%  endif %}
+                </div>
+            </div>
+            <div class="form__footer">
+                <button type="submit" class="button button_style_blue">Создать рецепт</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script src="{% static 'js/config/config.js' %}"></script>
+<script src="{% static 'js/components/Header.js' %}"></script>
+<script src="{% static 'js/utils/debouncing.js' %}"></script>
+<script src="{% static 'js/api/Api.js' %}"></script>
+<script src="{% static 'formRecipe.js' %}"></script>
+{% endblock %}

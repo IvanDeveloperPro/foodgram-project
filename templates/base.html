@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+{% csrf_token %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% load static %}
+    <title>{% block title %}Главная{% endblock %}</title>
+    {% block static %} {% endblock %}
+</head>
+
+<body>
+<header class="header">
+    <nav class="nav">
+        {% with resolver=request.resolver_match.url_name %}
+        <div class="nav__container container">
+            <ul class="nav__items list">
+                <li class="nav__item {% if resolver == 'index' %}nav__item_active{% endif %}"><a href="{% url 'index' %}" class="nav__link link">Рецепты</a></li>
+            {% if user.is_authenticated %}
+                <li class="nav__item {% if resolver == 'follow' %}nav__item_active{% endif %}"><a href="{% url 'follow' %}" class="nav__link link">Мои подписки</a></li>
+                <li class="nav__item {% if resolver == 'new_recipe' %}nav__item_active{% endif %}"><a href="{% url 'new_recipe' %}" class="nav__link link">Создать рецепт</a></li>
+                <li class="nav__item {% if resolver == 'favorite' %}nav__item_active{% endif %}"><a href="{% url 'favorite' %}" class="nav__link link">Избранное</a></li>
+            {% endif %}
+                <li class="nav__item {% if resolver == 'purchase' %}nav__item_active{% endif %}"><a href="{% url 'purchase' %}" class="nav__link link">Список покупок</a> <span class="badge badge_style_blue nav__badge" id="counter">{% if amount > 0 %}{{ amount }}{% endif %}</span> </li>
+            </ul>
+            {% if user.is_authenticated %}
+            <ul class="nav__items list">
+                <li class="nav__item"><a href="{% url 'password_change' %}" class="nav__link link">Изменить пароль</a></li>
+                <li class="nav__item"><a href="{% url 'logout' %}" class="nav__link link">Выход</a></li>
+            </ul>
+            {% else %}
+            <ul class="nav__items list">
+                <li class="nav__item"><a href="{% url 'login' %}" class="nav__link link">Войти</a></li>
+                <li class="nav__item"><a href="{% url 'signup' %}" class="button button_style_blue">Создать аккаунт</a></li>
+            </ul>
+            {% endif %}
+        </div>
+        {% endwith %}
+    </nav>
+</header>
+{% block content %}
+    Вот здесь должна быть информация
+{% endblock %}
+<footer class="footer">
+    <div class="footer__container container">
+        <a href="#" class="footer__brand link">Продуктовый помощник</a>
+        <ul class="footer__items">
+            <li class="footer__item"><a href="#" class="footer__link link">Об авторе </a></li>
+            <li class="footer__item"><a href="#" class="footer__link link">Технологии</a></li>
+        </ul>
+    </div>
+    </footer>
+</body>
+</html>
