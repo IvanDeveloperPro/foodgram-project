@@ -1,24 +1,23 @@
-from django.db import IntegrityError, transaction
-from django.http import HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
+from .models import Recipe, TagRecipe
 
-from .models import Ingredient, IngredientAmount, TagFood
-
-ingres = {}
-tags_food = TagFood.objects.values_list('title', flat=True)
-active_tags = {k: 'active' for k in tags_food}
+tag_recipes = TagRecipe.objects.values_list('title', flat=True)
+active_tags = {k: 'active' for k in tag_recipes}
+# в active_tags я храню состяние всех тегов.
+# При фильтрации по тегам здесь сохраняю их текущее состояние.
+# прошу подсказать , где можно хранить состояние
 
 
 def filter_tags(request) -> list:
-    for tag in TagFood.objects.values_list('title', flat=True):
+    for tag in active_tags:
         item = request.GET.get(tag)
-        if item != active_tags[tag] and item is not None:
+        if item != active_tags.get(tag) and item is not None:
             active_tags[tag] = item
     tags = [k for k, v in active_tags.items() if v == 'active']
     return tags
 
 
 def get_ingredients(request, query_name, query_value):
+    ingres = {}
     for key, value in request.POST.items():
         if key.startswith(query_name):
             num = key.split('_')[1]
@@ -26,26 +25,11 @@ def get_ingredients(request, query_name, query_value):
     return ingres
 
 
-def save_recipe(request, form, ingredient: dict):
-    try:
-        recipe = form.save(commit=False)
-        recipe.author = request.user
-        recipe.save()
-
-        with transaction.atomic():
-            data = form.cleaned_data.get('tagfood')
-            for tag in data:
-                tag.recipes.add(recipe)
-
-            recipe.ingredient.all().delete()
-            for title, value in ingredient.items():
-                ingredient = get_object_or_404(Ingredient, title=title)
-                ingredient_amount = IngredientAmount.objects.get_or_create(
-                    ingredient=ingredient,
-                    amount=value)
-                ingredient_amount[0].recipes.add(recipe)
-            recipe.save()
-
-            return recipe
-    except IntegrityError:
-        raise HttpResponseBadRequest
+def filter_recipes(request):
+    return (
+        Recipe.objects
+        .select_related('author')
+        .prefetch_related('ingredient_recipes', 'tag_recipes')
+        .filter(tag_recipes__title__in=filter_tags(request))
+        .distinct()
+    )

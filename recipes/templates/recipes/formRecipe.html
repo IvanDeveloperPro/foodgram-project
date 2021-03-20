@@ -26,14 +26,14 @@
                 <p class="form__label">Теги</p>
                 <div class="form__field-group">
                     <div class="tags">
-                        {% for tag in form.tagfood %}
+                        {% for tag in form.tag_recipes %}
                         <div class="tags__item">
                             <label for="{{ tag.id_for_label }}" class="tags__label">{{ tag|tag_filter }}</label>
                         </div>
                         {% endfor %}
                     </div>
-                    {% if form.tagfood.errors %}
-                        <span class="form__error">{{ form.tagfood.errors }}</span>
+                    {% if form.tag_recipes.errors %}
+                        <span class="form__error">{{ form.tag_recipes.errors }}</span>
                     {%  endif %}
                 </div>
             </div>
@@ -50,8 +50,8 @@
                     </div>
                     <div class="form__field-group-ingredientes-container">
                         {% if form.instance.author == request.user %}
-                            {% for ingredient in form.instance.ingredient.all %}
-                            <div class="form__field-item-ingredient" id="ing_{{ ingredient.id }}">
+                            {% for ingredient in form.instance.ingredient_recipes.all %}
+                            <div class="form__field-item-ingredient_recipes" id="ing_{{ ingredient.id }}">
                                 <span> {{ ingredient }} {{ ingredient.amount }} {{ ingredient.ingredient.dimension }}</span>
                                 <span class="form__field-item-delete"></span>
                                 <input id="nameIngredient_{{ ingredient.id }}" name="nameIngredient_{{ ingredient.id }}" type="hidden" value="{{ ingredient.ingredient.title }}">

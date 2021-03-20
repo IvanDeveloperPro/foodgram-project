@@ -1,24 +1,24 @@
+import csv
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import FileResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import RecipeForm
-from .models import Follow, IngredientAmount, PurchaseRecipe, Recipe, TagFood
-from .utils import filter_tags, get_ingredients, save_recipe
+from .forms import RecipeForm, save_recipe
+from .models import Ingredient, PurchaseRecipe, Recipe, TagRecipe
+from .utils import filter_recipes, get_ingredients
 
 User = get_user_model()
 
 
 def index(request):
-    all_tags = TagFood.objects.all()
-    recipes = Recipe.objects\
-        .select_related('author',)\
-        .prefetch_related('ingredient', 'tagfood')\
-        .filter(tagfood__title__in=filter_tags(request)).distinct()
-    paginator = Paginator(recipes, 6)
+    all_tags = TagRecipe.objects.all()
+    recipes = filter_recipes(request)
+    paginator = Paginator(recipes, settings.PAGINATOR_NUMS)
     page_num = request.GET.get('page')
     page = paginator.get_page(page_num)
     return render(
@@ -39,15 +39,10 @@ def single_recipe(request, recipe_id):
 
 @login_required(login_url='login')
 def favorite(request):
-    tags = TagFood.objects.all()
-    recipes = Recipe.objects \
-        .select_related('author', ) \
-        .prefetch_related('ingredient', 'tagfood') \
-        .filter(
-            tagfood__title__in=filter_tags(request),
-            favorites__user=request.user
-        ).distinct()
-    paginator = Paginator(recipes, 6)
+    tags = TagRecipe.objects.all()
+    recipes = filter_recipes(request)
+    recipes = recipes.filter(favorites__user=request.user)
+    paginator = Paginator(recipes, settings.PAGINATOR_NUMS)
     page_num = request.GET.get('page')
     page = paginator.get_page(page_num)
     return render(
@@ -59,8 +54,9 @@ def favorite(request):
 
 @login_required
 def follow(request):
-    authors = Follow.objects.filter(user=request.user)
-    paginator = Paginator(authors, 3)
+    user = get_object_or_404(User, username=request.user.username)
+    authors = user.followers.all()
+    paginator = Paginator(authors, settings.PAGINATOR_NUMS)
     page_num = request.GET.get('page')
     page = paginator.get_page(page_num)
     return render(
@@ -71,16 +67,13 @@ def follow(request):
 
 
 def author(request, author_name):
-    tags = TagFood.objects.all()
-    if author_name is None or author_name == '':
+    tags = TagRecipe.objects.all()
+    if not author_name:
         author_name = request.user.username
     author = get_object_or_404(User, username=author_name)
-    recipes = Recipe.objects \
-        .select_related('author') \
-        .prefetch_related('ingredient', 'tagfood') \
-        .filter(author=author, tagfood__title__in=filter_tags(request))\
-        .distinct()
-    paginator = Paginator(recipes, 6)
+    recipes = filter_recipes(request)
+    recipes = recipes.filter(author=author)
+    paginator = Paginator(recipes, settings.PAGINATOR_NUMS)
     page_num = request.GET.get('page')
     page = paginator.get_page(page_num)
     return render(
@@ -108,11 +101,10 @@ def purchase(request):
 @login_required(login_url='login')
 def new_recipe(request):
     form = RecipeForm(request.POST or None, files=request.FILES or None)
-    if request.method == 'POST':
-        ingres = get_ingredients(request, 'nameIngredient', 'valueIngredient')
-        if form.is_valid():
-            recipe = save_recipe(request, form, ingres)
-            return redirect('single_recipe', recipe_id=recipe.id)
+    ingres = get_ingredients(request, 'nameIngredient', 'valueIngredient')
+    if form.is_valid():
+        recipe = save_recipe(request, form, ingres)
+        return redirect('single_recipe', recipe_id=recipe.id)
     return render(
         request,
         'recipes/formRecipe.html',
@@ -129,55 +121,55 @@ def edit_recipe(request, recipe_id):
             files=request.FILES or None,
             instance=recipe
         )
-        if request.method == 'POST':
-            ingres = get_ingredients(
-                request,
-                'nameIngredient',
-                'valueIngredient'
+        ingres = get_ingredients(
+            request,
+            'nameIngredient',
+            'valueIngredient'
+        )
+        if form.is_valid():
+            recipe = save_recipe(request, form, ingres)
+            return redirect(
+                'single_recipe',
+                recipe_id=recipe.id
             )
-            if form.is_valid():
-                recipe = save_recipe(request, form, ingres)
-                return redirect(
-                    'single_recipe',
-                    recipe_id=recipe.id
-                )
         return render(
             request,
             'recipes/formRecipe.html',
             {'form': form}
         )
-
     return redirect('single_recipe', recipe_id=recipe_id)
 
 
 def remove_purchase(request, recipe_id):
-    PurchaseRecipe.objects.get(user=request.user, recipe_id=recipe_id).delete()
+    purchase_recipe = get_object_or_404(
+        PurchaseRecipe,
+        user=request.user,
+        recipe_id=recipe_id
+    )
+    purchase_recipe.delete()
     return redirect('purchase')
 
 
 def to_pdf_file(request):
-    if IngredientAmount.objects\
-            .filter(recipes__purchases__user=request.user)\
-            .exists():
-        ingredients = IngredientAmount.objects\
-            .filter(recipes__purchases__user=request.user)\
-            .annotate(sum=Sum('amount'))\
+    if (PurchaseRecipe.objects
+            .filter(user=request.user)
+            .exists()):
+        ingredients = (
+            Ingredient.objects
+            .filter(ingredient_recipes__recipes__purchases__user=request.user)
+            .order_by('title')
             .distinct()
-
-        filename = 'purchases.txt'
-        with open(filename, 'w') as file:
-            for ingredient in ingredients:
-                file.write(f'{ingredient} - {ingredient.sum} {ingredient.ingredient.dimension}\n')
-        return FileResponse(
-            open(filename, 'rb'),
-            as_attachment=True,
+            .annotate(sum=Sum('ingredient_recipes__amount'))
         )
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = (
+            'attachment; filename="ingredients.csv"'
+        )
+        response.write(u'\ufeff'.encode('utf8'))
+
+        writer = csv.writer(response)
+        for ing in ingredients:
+            writer.writerow([f'{ing} - {ing.sum} {ing.dimension}'])
+        return response
     return redirect('purchase')
-
-
-def page_not_found(request, exception): # noqa
-    return render(request, "misc/404.html", {"path": request.path}, status=404)
-
-
-def server_error(request):
-    return render(request, "misc/500.html", status=500)

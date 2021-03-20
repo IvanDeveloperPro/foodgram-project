@@ -11,7 +11,7 @@ const api = new Api(apiUrl);
 const header = new Header(counterId);
 
 const defineInitialIndex = function () {
-    const ingredients = ingredientsContainer.querySelectorAll('.form__field-item-ingredient')
+    const ingredients = ingredientsContainer.querySelectorAll('.form__field-item-ingredient_recipes')
     if (ingredients.length === 0) { return 1 }
     const data = Array.from(ingredients).map(item => {
         if (!item.getAttribute('id')) { return 0 }
@@ -37,7 +37,7 @@ function Ingredients() {
         if(nameIngredient.value && cantidad.value) {
             const data = getValue();
             const elem = document.createElement('div');
-            elem.classList.add('form__field-item-ingredient');
+            elem.classList.add('form__field-item-ingredient_recipes');
             elem.id = `ing_${cur}`;
             elem.innerHTML = `<span> ${data.name} ${data.value}${data.units}</span> <span class="form__field-item-delete"></span>
                              <input id="nameIngredient_${cur}" name="nameIngredient_${cur}" type="hidden" value="${data.name}">
@@ -52,7 +52,7 @@ function Ingredients() {
 
     const eventDelete = (e) => {
         if(e.target.classList.contains('form__field-item-delete')) {
-            const item = e.target.closest('.form__field-item-ingredient');
+            const item = e.target.closest('.form__field-item-ingredient_recipes');
             item.removeEventListener('click',eventDelete);
             item.remove()
         };

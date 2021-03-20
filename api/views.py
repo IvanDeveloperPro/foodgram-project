@@ -24,34 +24,55 @@ class IngredientView(ListAPIView):
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def favorites(request):
-    idx = request.data.get('id')
-    recipe = get_object_or_404(Recipe, id=idx)
+    recipe = get_object_or_404(
+        Recipe,
+        id=request.data.get('id')
+    )
     if request.method == 'POST':
         FavoriteRecipe.objects.get_or_create(recipe=recipe, user=request.user)
     else:
-        FavoriteRecipe.objects.get(recipe=recipe, user=request.user).delete()
+        favor_recipe = get_object_or_404(
+            FavoriteRecipe,
+            recipe=recipe,
+            user=request.user
+        )
+        favor_recipe.delete()
     return Response(data={'success': True})
 
 
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def subscriptions(request):
-    idx = request.data.get('id')
-    author = get_object_or_404(User, id=idx)
+    author = get_object_or_404(
+        User,
+        id=request.data.get('id')
+    )
     if request.method == 'POST':
         Follow.objects.get_or_create(author=author, user=request.user)
     else:
-        Follow.objects.get(author=author, user=request.user).delete()
+        follow = get_object_or_404(
+            Follow,
+            author=author,
+            user=request.user
+        )
+        follow.delete()
     return Response(data={'success': True})
 
 
 @api_view(['POST', 'DELETE'])
 @permission_classes([AllowAny])
 def purchases(request):
-    idx = request.data.get('id')
-    recipe = get_object_or_404(Recipe, id=idx)
+    recipe = get_object_or_404(
+        Recipe,
+        id=request.data.get('id')
+    )
     if request.method == 'POST':
         PurchaseRecipe.objects.get_or_create(recipe=recipe, user=request.user)
     else:
-        PurchaseRecipe.objects.get(recipe=recipe, user=request.user).delete()
+        purchase_recipe = get_object_or_404(
+            PurchaseRecipe,
+            recipe=recipe,
+            user=request.user
+        )
+        purchase_recipe.delete()
     return Response(data={'success': True})

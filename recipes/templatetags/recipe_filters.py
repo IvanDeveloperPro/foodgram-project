@@ -1,7 +1,7 @@
 from django import template
 from django.shortcuts import get_object_or_404
 
-from recipes.models import FavoriteRecipe, Follow, PurchaseRecipe, TagFood
+from recipes.models import FavoriteRecipe, Follow, PurchaseRecipe, TagRecipe
 
 from ..utils import active_tags
 
@@ -11,7 +11,7 @@ register = template.Library()
 @register.filter
 def tag_filter(tag):
     label = tag.data.get('label')
-    food_tag = get_object_or_404(TagFood, title=label)
+    food_tag = get_object_or_404(TagRecipe, title=label)
     style = f'tags__checkbox tags__checkbox_style_{food_tag.color}'
     tag.data['attrs']['class'] = style
     return tag
