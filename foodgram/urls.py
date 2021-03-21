@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.flatpages import views
 from django.urls import include, path
 
+
 urlpatterns = [
     path('', include('recipes.urls')),
     path('auth/', include('users.urls')),
@@ -22,5 +23,5 @@ urlpatterns += [
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# handler404 = "views.page_not_found" # noqa
-# handler500 = "views.server_error"  # noqa
+handler404 = 'foodgram.views.page_not_found' # noqa
+handler500 = 'foodgram.views.server_error'  # noqa

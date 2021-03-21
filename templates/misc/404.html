@@ -1,4 +1,6 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
+{% load static %}
+{% block static %}<link rel="stylesheet" href="{% static 'pages/index.css' %}"> {% endblock %}
 {% block title %} Ошибка 404 {% endblock %}
 {% block content %}
 
