@@ -26,14 +26,14 @@
                 <p class="form__label">Теги</p>
                 <div class="form__field-group">
                     <div class="tags">
-                        {% for tag in form.tag_recipes %}
+                        {% for tag in form.tags %}
                         <div class="tags__item">
                             <label for="{{ tag.id_for_label }}" class="tags__label">{{ tag|tag_filter }}</label>
                         </div>
                         {% endfor %}
                     </div>
-                    {% if form.tag_recipes.errors %}
-                        <span class="form__error">{{ form.tag_recipes.errors }}</span>
+                    {% if form.tags.errors %}
+                        <span class="form__error">{{ form.tags.errors }}</span>
                     {%  endif %}
                 </div>
             </div>
@@ -50,8 +50,8 @@
                     </div>
                     <div class="form__field-group-ingredientes-container">
                         {% if form.instance.author == request.user %}
-                            {% for ingredient in form.instance.ingredient_recipes.all %}
-                            <div class="form__field-item-ingredient_recipes" id="ing_{{ ingredient.id }}">
+                            {% for ingredient in form.instance.ingredients.all %}
+                            <div class="form__field-item-ingredients" id="ing_{{ ingredient.id }}">
                                 <span> {{ ingredient }} {{ ingredient.amount }} {{ ingredient.ingredient.dimension }}</span>
                                 <span class="form__field-item-delete"></span>
                                 <input id="nameIngredient_{{ ingredient.id }}" name="nameIngredient_{{ ingredient.id }}" type="hidden" value="{{ ingredient.ingredient.title }}">
@@ -62,8 +62,8 @@
                         {% endif %}
                     </div>
                     <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>
-                    {% if ingredient.errors %}
-                        <span class="form__error">{{ ingredient.errors }}</span>
+                    {% if form.ingredients.errors %}
+                        <span class="form__error">{{ form.ingredients.errors }}</span>
                     {%  endif %}
                 </div>
             </div>

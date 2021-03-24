@@ -8,9 +8,9 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import RecipeForm, save_recipe
+from .forms import RecipeForm
 from .models import Ingredient, PurchaseRecipe, Recipe, TagRecipe
-from .utils import filter_recipes, get_ingredients
+from .utils import filter_recipes, get_ingredients_dict
 
 User = get_user_model()
 
@@ -100,11 +100,23 @@ def purchase(request):
 
 @login_required(login_url='login')
 def new_recipe(request):
-    form = RecipeForm(request.POST or None, files=request.FILES or None)
-    ingres = get_ingredients(request, 'nameIngredient', 'valueIngredient')
+    ingredients = get_ingredients_dict(
+        request,
+        'nameIngredient',
+        'valueIngredient'
+    )
+    form = RecipeForm(
+        request.POST or None,
+        files=request.FILES or None,
+        ingredients=ingredients
+    )
     if form.is_valid():
-        recipe = save_recipe(request, form, ingres)
-        return redirect('single_recipe', recipe_id=recipe.id)
+        recipe = form.save(commit=False)
+        recipe.author = request.user
+        recipe.save()
+        form.save_m2m()
+
+        return redirect('single_recipe', recipe_id=form.instance.id)
     return render(
         request,
         'recipes/formRecipe.html',
@@ -116,21 +128,25 @@ def new_recipe(request):
 def edit_recipe(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
     if recipe.author == request.user:
-        form = RecipeForm(
-            request.POST or None,
-            files=request.FILES or None,
-            instance=recipe
-        )
-        ingres = get_ingredients(
+        ingredients = get_ingredients_dict(
             request,
             'nameIngredient',
             'valueIngredient'
         )
+        form = RecipeForm(
+            request.POST or None,
+            files=request.FILES or None,
+            instance=recipe,
+            ingredients=ingredients,
+        )
         if form.is_valid():
-            recipe = save_recipe(request, form, ingres)
+            recipe = form.save(commit=False)
+            recipe.author = request.user
+            recipe.save()
+            form.save_m2m()
             return redirect(
                 'single_recipe',
-                recipe_id=recipe.id
+                recipe_id=form.instance.id
             )
         return render(
             request,

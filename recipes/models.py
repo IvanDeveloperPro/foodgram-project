@@ -45,7 +45,7 @@ class IngredientRecipe(models.Model):
         Ingredient,
         verbose_name='Ингредиент',
         on_delete=models.CASCADE,
-        related_name='ingredient_recipes'
+        related_name='ingredients'
     )
     amount = models.PositiveIntegerField(verbose_name='Количество')
 
@@ -69,13 +69,13 @@ class Recipe(models.Model):
         max_length=100,
         unique=True
     )
-    tag_recipes = models.ManyToManyField(
+    tags = models.ManyToManyField(
         TagRecipe,
         verbose_name='Тэги',
         related_name='recipes',
         blank=True,
     )
-    ingredient_recipes = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         IngredientRecipe,
         verbose_name='Ингредиенты',
         related_name='recipes',
@@ -161,7 +161,12 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        unique_together = ['user', 'author']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow'
+            )
+        ]
 
     def __str__(self):
         return self.user.username

@@ -1,9 +1,8 @@
 from django import template
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 
 from recipes.models import FavoriteRecipe, Follow, PurchaseRecipe, TagRecipe
-
-from ..utils import active_tags
 
 register = template.Library()
 
@@ -19,7 +18,7 @@ def tag_filter(tag):
 
 @register.filter
 def active_tag(tag):
-    return active_tags[tag.title]
+    return cache.get(tag.title)
 
 
 @register.filter

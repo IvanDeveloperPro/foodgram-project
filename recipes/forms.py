@@ -1,21 +1,23 @@
 from django import forms
-from django.db import IntegrityError, transaction
-from django.http import HttpResponseBadRequest
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 
 from .models import Ingredient, IngredientRecipe, Recipe, TagRecipe
 
 
 class RecipeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.ing = kwargs.pop('ingredients')
+        super(RecipeForm, self).__init__(*args, **kwargs)
 
-    tag_recipes = forms.ModelMultipleChoiceField(
+    tags = forms.ModelMultipleChoiceField(
         queryset=TagRecipe.objects.all(),
         widget=forms.CheckboxSelectMultiple(
             attrs={'class': 'tags__checkbox'}
         ),
         required=False
     )
-    ingredient_recipes = forms.ModelMultipleChoiceField(
+    ingredients = forms.ModelMultipleChoiceField(
         queryset=IngredientRecipe.objects.all(),
         required=False
     )
@@ -24,28 +26,16 @@ class RecipeForm(forms.ModelForm):
         model = Recipe
         exclude = ('author', 'pub_date')
 
+    def clean_ingredients(self):
+        if self.ing:
 
-def save_recipe(request, form, ingredient: dict):
-    try:
-        recipe = form.save(commit=False)
-        recipe.author = request.user
-        recipe.save()
-
-        data = form.cleaned_data.get('tag_recipes')
-        for tag in data:
-            tag.recipes.add(recipe)
-
-        with transaction.atomic():
-            recipe.ingredient_recipes.all().delete()
-
-            for title, value in ingredient.items():
-                ingredient = get_object_or_404(Ingredient, title=title)
-                ingredient_amount = IngredientRecipe.objects.get_or_create(
-                    ingredient=ingredient,
-                    amount=value)
-                ingredient_amount[0].recipes.add(recipe)
-            recipe.save()
-
-        return recipe
-    except IntegrityError:
-        raise HttpResponseBadRequest
+            obj = []
+            for name, value in self.ing.items():
+                ing = get_object_or_404(Ingredient, title=name)
+                ing_recipe = IngredientRecipe.objects.get_or_create(
+                    ingredient=ing,
+                    amount=value
+                )
+                obj.append(ing_recipe[0].id)
+            return IngredientRecipe.objects.filter(id__in=obj)
+        raise ValidationError('Необходимо добавить минимум 1 ингридиент')
