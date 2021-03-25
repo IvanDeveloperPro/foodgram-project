@@ -1,7 +1,7 @@
 [![foodgram](https://github.com/IvanDeveloperPro/foodgram-project/workflows/foodgram/badge.svg)](https://github.com/IvanDeveloperPro/foodgram-project/actions)
 
 # Foodgram
-The example this project is deploying on the IP 84.201.164.21 
+The example this project is deploying on the IP 84.201.164.21. User for wathing login: admin password: 12345 
 
 The project represent itself a recipes blog. You could save recipe, watch recipes others users, follow to users liked you recipe, download list ingredients for preparing recipes and others...
 
