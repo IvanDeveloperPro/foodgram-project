@@ -172,10 +172,10 @@ def to_pdf_file(request):
             .exists()):
         ingredients = (
             Ingredient.objects
-            .filter(ingredient_recipes__recipes__purchases__user=request.user)
+            .filter(ingredients__recipes__purchases__user=request.user)
             .order_by('title')
             .distinct()
-            .annotate(sum=Sum('ingredient_recipes__amount'))
+            .annotate(sum=Sum('ingredients__amount'))
         )
 
         response = HttpResponse(content_type='text/csv')
