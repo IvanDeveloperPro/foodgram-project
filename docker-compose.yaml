@@ -16,9 +16,6 @@ services:
     restart: always
     expose:
       - "8000"   
-    volumes:
-      - ./static:/var/www/static/
-      - ./media:/var/www/media/
     depends_on:
       - db
     env_file:
