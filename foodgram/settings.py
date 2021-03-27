@@ -101,7 +101,6 @@ LOGOUT_REDIRECT_URL = 'index'
 
 SITE_ID = 1
 
-<<<<<<< HEAD
 PAGINATOR_NUMS = 3
 
 LANGUAGE_CODE = 'ru'
