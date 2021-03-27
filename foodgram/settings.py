@@ -4,13 +4,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = 'ky1qwwc#!7#+(u0458nc*$0h2c2ddnuc=g4&p3usmen6)(uch$'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     '*',
-    '127.0.0.1',
-    'localhost',
-    '[::1]',
 ]
 
 INSTALLED_APPS = [
@@ -64,8 +61,12 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME'),
+	'USER': os.environ.get('POSTGRES_USER'),
+	'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+	'HOST': os.environ.get('DB_HOST'),
+	'PORT': os.environ.get('DB_PORT'),
     }
 }
 
@@ -100,7 +101,11 @@ LOGOUT_REDIRECT_URL = 'index'
 
 SITE_ID = 1
 
+<<<<<<< HEAD
 PAGINATOR_NUMS = 3
+=======
+PAGINATOR_NUMS = 4
+>>>>>>> be8c26a442278083a1da4982b48a8c635d30990e
 
 LANGUAGE_CODE = 'ru'
 

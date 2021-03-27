@@ -2,10 +2,12 @@ Django==2.2
 django-filter==2.4.0
 djangorestframework==3.12.2
 flake8==3.9.0
+gunicorn==20.0.4
 isort==5.7.0
 mccabe==0.6.1
 Pillow==8.1.0
 pycodestyle==2.7.0
+psycopg2-binary==2.8.6
 pyflakes==2.3.0
 pytz==2021.1
 sorl-thumbnail==12.7.0
