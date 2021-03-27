@@ -4,9 +4,11 @@
 {% block title %} {{ flatpage.title }} {% endblock %}
 {% block content %}
 
- <main class="main container">
-        <h1>{{ flatpage.title }}</h1>
+<main class="main container">
+    <div class="custom-center-block">
+        <p class="custom-text-block">{{ flatpage.title }}</p>
         {{ flatpage.content }}
+    </div>
 </main>
 
 {% endblock %}

@@ -28,9 +28,10 @@ class RecipeForm(forms.ModelForm):
 
     def clean_ingredients(self):
         if self.ing:
-
             obj = []
             for name, value in self.ing.items():
+                if value < 1:
+                    raise ValidationError(f'Ингредиент {name} не может быть меньше 1')
                 ing = get_object_or_404(Ingredient, title=name)
                 ing_recipe = IngredientRecipe.objects.get_or_create(
                     ingredient=ing,

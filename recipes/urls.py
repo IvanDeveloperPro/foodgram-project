@@ -15,6 +15,11 @@ urlpatterns = [
          views.edit_recipe,
          name='edit_recipe'
      ),
+    path(
+         'remove_recipe/<int:recipe_id>/',
+         views.remove_recipe,
+         name='remove_recipe'
+     ),
     path('download_purchases/', views.to_pdf_file, name='to_pdf_file'),
     path(
         'remove_purchase/<int:recipe_id>/',

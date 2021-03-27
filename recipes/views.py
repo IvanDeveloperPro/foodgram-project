@@ -156,11 +156,23 @@ def edit_recipe(request, recipe_id):
     return redirect('single_recipe', recipe_id=recipe_id)
 
 
+@login_required(login_url='login')
+def remove_recipe(request, recipe_id):
+    recipe = get_object_or_404(
+        Recipe,
+        id=recipe_id,
+        author=request.user
+    )
+    recipe.delete()
+    return redirect('index')
+
+
+@login_required(login_url='login')
 def remove_purchase(request, recipe_id):
     purchase_recipe = get_object_or_404(
         PurchaseRecipe,
         user=request.user,
-        recipe_id=recipe_id
+        recipe__id=recipe_id
     )
     purchase_recipe.delete()
     return redirect('purchase')
@@ -172,10 +184,10 @@ def to_pdf_file(request):
             .exists()):
         ingredients = (
             Ingredient.objects
-            .filter(ingredient_recipes__recipes__purchases__user=request.user)
+            .filter(ingredients__recipes__purchases__user=request.user)
             .order_by('title')
             .distinct()
-            .annotate(sum=Sum('ingredient_recipes__amount'))
+            .annotate(sum=Sum('ingredients__amount'))
         )
 
         response = HttpResponse(content_type='text/csv')
