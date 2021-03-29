@@ -17,8 +17,8 @@ services:
     expose:
       - "8000"   
     volumes:
-      - ./static:/static/
-      - ./media:/media/
+      - ./static:/code/static/
+      - ./media:/code/media/
     depends_on:
       - db
     env_file:
